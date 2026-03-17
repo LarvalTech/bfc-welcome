@@ -680,7 +680,7 @@ function spawnRabbit(planeAltitude) {
     groundY,
     startScale,
     endScale,
-    fallSpeed: 0.21 + Math.random() * 0.09,  // 50% slower than previous
+    fallSpeed: 0.34 + Math.random() * 0.10,  // faster fall so bunnies reach vanishing point promptly
     driftAmpX: personality.driftAmpX * (0.85 + Math.random() * 0.3),
     driftAmpZ: personality.driftAmpZ * (0.85 + Math.random() * 0.3),
     driftFreq: personality.driftFreq * (0.9 + Math.random() * 0.2),
@@ -750,7 +750,7 @@ function updateRabbits(dt, phase, allowSpawn = true) {
   if (rabbitRealTextures.length === 0) return;
 
   const altitude = Math.max(0.2, airplane.position.y);
-  const spawnRate = THREE.MathUtils.clamp(0.36 + altitude * 0.12, 0.36, 1.0);  // midpoint between 0.24-0.70 and 0.48-1.4
+  const spawnRate = THREE.MathUtils.clamp(0.25 + altitude * 0.08, 0.25, 0.70);  // reduced to give space between arrivals
 
   if (allowSpawn && !rabbitSpawnLeadApplied) {
     rabbitSpawnAccumulator += spawnRate * RABBIT_SPAWN_LEAD_SECONDS;
