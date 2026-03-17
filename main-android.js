@@ -50,7 +50,7 @@ const RIBBON_REBUILD_INTERVAL = 1 / 20; // 20 Hz
 // -----------------------------------------------
 // Eurovision particles (C)
 // -----------------------------------------------
-const MAX_PARTICLES = 1600;
+const MAX_PARTICLES = 6000;
 
 const particlePositions = new Float32Array(MAX_PARTICLES * 3);
 const particleVelocities = new Float32Array(MAX_PARTICLES * 3);
@@ -148,12 +148,23 @@ function setupParticles() {
   particleGeometry.setDrawRange(0, 0);
 
   particleMaterial = new THREE.PointsMaterial({
-    size: 0.09,
-    color: 0xff2222,
+    size: 0.11,
+    vertexColors: true,
     transparent: true,
     opacity: 0.95,
     depthWrite: false,
   });
+
+  // Vertex colour buffer for mixed red/black particles
+  const particleColors = new Float32Array(MAX_PARTICLES * 3);
+  // Default all red
+  for (let i = 0; i < MAX_PARTICLES; i++) {
+    particleColors[i * 3 + 0] = 1.0;
+    particleColors[i * 3 + 1] = 0.05;
+    particleColors[i * 3 + 2] = 0.05;
+  }
+  particleGeometry.setAttribute("color", new THREE.BufferAttribute(particleColors, 3));
+  window._particleColors = particleColors;
 
   particlePoints = new THREE.Points(particleGeometry, particleMaterial);
   experienceRoot.add(particlePoints);
@@ -210,6 +221,10 @@ function placeRootInFrontOfViewer() {
   // Reset effects state (safe if user exits/enters AR again)
   trailPoints.length = 0;
   explosionTriggered = false;
+  window._midBurst1Done = false;
+  window._midBurst2Done = false;
+  window._sparkleShowerActive = false;
+  window._sparkleShowerTimer = 0;
   previousPhase = 0;
   currentFlightSpeed = FLIGHT_INITIAL_SPEED_MPS;
   flightCompleted = false;
@@ -297,10 +312,20 @@ function updateFlight(dt) {
   airplane.localToWorld(TMP_POS);
 
   trailPoints.push(TMP_POS.clone());
-  if (trailPoints.length > 80) trailPoints.shift();
+  if (trailPoints.length > 200) trailPoints.shift();
 
-  // Trigger B+C moment
-  if (!explosionTriggered && phase > FLIGHT_SPAN_METERS * 0.65) {
+  // Mid-flight burst at 35% of flight
+  if (!window._midBurst1Done && phase > FLIGHT_SPAN_METERS * 0.35) {
+    triggerMidBurst();
+    window._midBurst1Done = true;
+  }
+  // Mid-flight burst at 60%
+  if (!window._midBurst2Done && phase > FLIGHT_SPAN_METERS * 0.60) {
+    triggerMidBurst();
+    window._midBurst2Done = true;
+  }
+  // Main finale burst at 80%
+  if (!explosionTriggered && phase > FLIGHT_SPAN_METERS * 0.80) {
     triggerEurovisionBurst();
     explosionTriggered = true;
   }
@@ -358,20 +383,30 @@ function emitAmbientParticles(dt) {
   }
 }
 
+function triggerMidBurst() {
+  const worldPos = TMP_POS.copy(airplane.position);
+  airplane.localToWorld(worldPos);
+  // Smaller mid-flight pop — mixed red and black
+  for (let i = 0; i < 600; i++) spawnParticle(worldPos, /*burst=*/true, /*branchy=*/false, /*black=*/(i % 3 === 0));
+  for (let i = 0; i < 200; i++) spawnParticle(worldPos, /*burst=*/true, /*branchy=*/true, /*black=*/(i % 4 === 0));
+}
+
 function triggerEurovisionBurst() {
   bannerEl?.classList.add("show");
 
   const worldPos = TMP_POS.copy(airplane.position);
   airplane.localToWorld(worldPos);
 
-  // Big star burst
-  for (let i = 0; i < 1400; i++) spawnParticle(worldPos, /*burst=*/true);
-
-  // Directional bias burst for extra spread
-  for (let i = 0; i < 500; i++) spawnParticle(worldPos, /*burst=*/true, /*branchy=*/true);
+  // Big finale burst — mixed red and black
+  for (let i = 0; i < 2200; i++) spawnParticle(worldPos, /*burst=*/true, /*branchy=*/false, /*black=*/(i % 3 === 0));
+  // Wide fan spread
+  for (let i = 0; i < 800; i++) spawnParticle(worldPos, /*burst=*/true, /*branchy=*/true, /*black=*/(i % 4 === 0));
+  // Sustained sparkle shower — emit over time via flag
+  window._sparkleShowerActive = true;
+  window._sparkleShowerTimer = 3.5; // seconds
 }
 
-function spawnParticle(worldPos, burst, branchy = false) {
+function spawnParticle(worldPos, burst, branchy = false, black = false) {
   // Find a dead slot
   let idx = -1;
   for (let i = 0; i < MAX_PARTICLES; i++) {
@@ -404,7 +439,22 @@ function spawnParticle(worldPos, burst, branchy = false) {
   particleVelocities[base + 1] = vy;
   particleVelocities[base + 2] = vz;
 
-  particleLife[idx] = burst ? 2.8 : 1.4;
+  particleLife[idx] = burst ? 3.5 : 1.4;
+
+  // Set vertex colour — red or black
+  if (window._particleColors) {
+    const cb = idx * 3;
+    if (black) {
+      window._particleColors[cb + 0] = 0.08;
+      window._particleColors[cb + 1] = 0.08;
+      window._particleColors[cb + 2] = 0.08;
+    } else {
+      window._particleColors[cb + 0] = 1.0;
+      window._particleColors[cb + 1] = 0.05 + Math.random() * 0.1;
+      window._particleColors[cb + 2] = 0.05;
+    }
+    particleGeometry.attributes.color.needsUpdate = true;
+  }
 
   // Expand draw range
   particleCount = Math.max(particleCount, idx + 1);
@@ -436,9 +486,26 @@ function updateParticles(dt) {
     aliveMaxIndex = Math.max(aliveMaxIndex, i + 1);
   }
 
+  // Sustained sparkle shower after finale burst
+  if (window._sparkleShowerActive && window._sparkleShowerTimer > 0) {
+    window._sparkleShowerTimer -= dt;
+    const showerPos = new THREE.Vector3(
+      (particlePositions[0] || 0) + (Math.random() - 0.5) * 2.0,
+      (particlePositions[1] || 0) + Math.random() * 1.5,
+      (particlePositions[2] || 0) + (Math.random() - 0.5) * 2.0
+    );
+    const showerRate = 80; // sparks/sec
+    const showerCount = Math.floor(showerRate * dt);
+    for (let s = 0; s < showerCount; s++) {
+      spawnParticle(showerPos, /*burst=*/false, /*branchy=*/false, /*black=*/(Math.random() < 0.3));
+    }
+    if (window._sparkleShowerTimer <= 0) window._sparkleShowerActive = false;
+  }
+
   // Update GPU
   particleGeometry.setDrawRange(0, aliveMaxIndex);
   particleGeometry.attributes.position.needsUpdate = true;
+  if (window._particleColors) particleGeometry.attributes.color.needsUpdate = true;
 }
 
 function setupRabbitTextures() {
