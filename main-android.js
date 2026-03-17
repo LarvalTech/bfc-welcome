@@ -638,25 +638,21 @@ function spawnRabbit(planeAltitude) {
   const sprite = new THREE.Sprite(material);
   let parachuteSprite = null;
 
-  // groundY in local root space. Root is 1m above camera, so:
-  //   y =  0.0 → 1m above camera (top of head)
-  //   y = -1.0 → camera eye level
-  //   y = -1.8 → roughly waist height
-  // We want bunnies to exit at the lower-right third of screen — just below eye level.
-  const groundY = -1.8 - Math.random() * 0.4;  // exits ~waist height, a little further down than eye level
+  // Fixed groundY — all bunnies vanish at the same height so they share one vanishing point.
+  const groundY = -1.8;
   const spawnY = airplane.position.y - 0.05 - Math.random() * 0.12;
-  // Lock consistent size regardless of plane altitude
+  // Fixed endScale — all bunnies reach the same size at groundY for a consistent vanishing size.
   const startScaleBase = 0.12;
-  const endScaleBase = 0.38 + Math.random() * 0.08;
+  const endScaleBase = 0.42;  // fixed, no random variation
   const startScale = startScaleBase * RABBIT_SIZE_MULTIPLIER;
   const endScale = endScaleBase * RABBIT_SIZE_MULTIPLIER;
 
-  // Spawn offset to the right side of the plane (positive X in local space)
-  // so bunnies appear to jump out the right door
+  // Fixed Z depth — all bunnies spawn at the same depth so perspective scaling is identical.
+  // Lateral spread (X) stays random to give natural spread across the screen.
   sprite.position.set(
     airplane.position.x + 0.4 + Math.random() * 0.2,
     spawnY,
-    airplane.position.z + (Math.random() - 0.5) * 0.25
+    airplane.position.z  // no Z randomness — consistent depth for all
   );
   sprite.scale.set(startScale * aspect, startScale, 1);
   experienceRoot.add(sprite);
