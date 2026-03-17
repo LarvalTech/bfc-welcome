@@ -175,6 +175,23 @@
     }
     #banner.show { opacity: 1; transform: translateY(0) scale(1); }
 
+    /* Screenshot tip */
+    #screenshot-tip {
+      display: none;
+      pointer-events: none;
+      font-size: 13px;
+      color: rgba(255,255,255,0.82);
+      text-align: center;
+      letter-spacing: 0.01em;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    #screenshot-tip.show { display: block; }
+
 
     /* ─── iOS camera feed ───────────────────────────────────────── */
     #cameraFeed {
@@ -242,6 +259,7 @@
     </div>
     <div class="hud-bottom">
       <div id="banner">C'Mon Bohs! 🔴⚫</div>
+      <div id="screenshot-tip">📸 Use your phone's screenshot button to capture the moment!</div>
     </div>
   </div>
 
@@ -332,6 +350,11 @@
           document.getElementById("hud").classList.add("active");
           document.getElementById("startBtn").click();
           logEvent("ar_session_start");
+          // Show screenshot tip after a short delay
+          setTimeout(() => {
+            document.getElementById("screenshot-tip").classList.add("show");
+            setTimeout(() => document.getElementById("screenshot-tip").classList.remove("show"), 6000);
+          }, 3000);
         });
       }).catch((err) => {
         console.error("Failed to load iOS AR script:", err);
@@ -348,6 +371,11 @@
           const arBtn = document.getElementById("ARButton");
           if (arBtn) arBtn.click();
           logEvent("ar_session_start");
+          // Show screenshot tip after a short delay
+          setTimeout(() => {
+            document.getElementById("screenshot-tip").classList.add("show");
+            setTimeout(() => document.getElementById("screenshot-tip").classList.remove("show"), 6000);
+          }, 3000);
 
           // Listen for session end via ARButton text change
           const observer = new MutationObserver(() => {
