@@ -639,7 +639,7 @@ function spawnRabbit(planeAltitude) {
   let parachuteSprite = null;
 
   // Fixed groundY — all bunnies vanish at the same height so they share one vanishing point.
-  const groundY = -1.8;
+  const groundY = -2.8;  // lower disappear point so bunnies stay on screen longer
   const spawnY = airplane.position.y - 0.05 - Math.random() * 0.12;
   // Fixed endScale — all bunnies reach the same size at groundY for a consistent vanishing size.
   const startScaleBase = 0.12;
