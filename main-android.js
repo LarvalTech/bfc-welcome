@@ -540,9 +540,9 @@ function createParachuteTexture() {
   ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
   ctx.fill();
 
-  // Panel stripes — wide black lines for visibility
+  // Panel stripes — medium black lines (66% thinner than previous)
   ctx.strokeStyle = "rgba(20, 20, 20, 0.9)";
-  ctx.lineWidth = 6;
+  ctx.lineWidth = 2;
   for (let i = 1; i <= 4; i++) {
     const x = 16 + (i * (width - 32)) / 5;
     ctx.beginPath();
@@ -679,7 +679,7 @@ function spawnRabbit(planeAltitude) {
     groundY,
     startScale,
     endScale,
-    fallSpeed: 0.42 + Math.random() * 0.18,
+    fallSpeed: 0.21 + Math.random() * 0.09,  // 50% slower than previous
     driftAmpX: personality.driftAmpX * (0.85 + Math.random() * 0.3),
     driftAmpZ: personality.driftAmpZ * (0.85 + Math.random() * 0.3),
     driftFreq: personality.driftFreq * (0.9 + Math.random() * 0.2),
@@ -749,7 +749,7 @@ function updateRabbits(dt, phase, allowSpawn = true) {
   if (rabbitRealTextures.length === 0) return;
 
   const altitude = Math.max(0.2, airplane.position.y);
-  const spawnRate = THREE.MathUtils.clamp(1.2 + altitude * 0.4, 1.2, 3.5);
+  const spawnRate = THREE.MathUtils.clamp(0.48 + altitude * 0.16, 0.48, 1.4);  // 60% slower than previous
 
   if (allowSpawn && !rabbitSpawnLeadApplied) {
     rabbitSpawnAccumulator += spawnRate * RABBIT_SPAWN_LEAD_SECONDS;
