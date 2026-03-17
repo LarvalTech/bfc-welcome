@@ -57,9 +57,7 @@
       line-height: 1.1;
       margin-bottom: 6px;
     }
-    .splash-teams span {
-      color: #cc0000;
-    }
+    .splash-teams span { color: #cc0000; }
     .splash-vs {
       color: #555;
       font-size: clamp(13px, 3vw, 18px);
@@ -82,12 +80,16 @@
       line-height: 1.8;
       letter-spacing: 0.01em;
     }
-    .splash-details strong {
-      color: #fff;
-      font-weight: 600;
+    .splash-details strong { color: #fff; font-weight: 600; }
+    .splash-instruction {
+      color: #777;
+      font-size: clamp(11px, 2.6vw, 13px);
+      margin-top: 14px;
+      margin-bottom: 0;
+      letter-spacing: 0.02em;
     }
     .splash-cta {
-      margin-top: 36px;
+      margin-top: 20px;
       background: #cc0000;
       color: #fff;
       border: none;
@@ -104,54 +106,19 @@
     .splash-credit {
       margin-top: 28px;
       font-size: 11px;
-      color: #444;
+      color: #333;
       letter-spacing: 0.04em;
     }
 
-    /* ─── Closing card ──────────────────────────────────────────── */
-    #closing-card {
+    /* ─── Hide the native ARButton — splash button drives the session ── */
+    #ARButton { display: none !important; }
+
+    /* ─── Android HUD (shown only during AR session) ────────────── */
+    #hud {
       display: none;
       position: fixed;
       inset: 0;
-      z-index: 300;
-      background: #0d0d0d;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 18px;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      text-align: center;
-      padding: 40px 24px;
-      opacity: 0;
-      transition: opacity 800ms ease;
-    }
-    #closing-card.visible {
-      opacity: 1;
-    }
-    #closing-card img {
-      width: clamp(72px, 18vw, 110px);
-      height: auto;
-      opacity: 0.88;
-    }
-    #closing-card p {
-      color: #888;
-      font-size: clamp(12px, 3vw, 15px);
-      font-weight: 400;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin: 0;
-    }
-    #closing-card strong {
-      color: #ccc;
-      font-weight: 600;
-    }
-
-    /* ─── Shared HUD ────────────────────────────────────────────── */
-    #hud {
-      position: fixed;
-      inset: 0;
       pointer-events: none;
-      display: grid;
       align-content: end;
       justify-items: center;
       padding: 18px;
@@ -159,6 +126,7 @@
       color: white;
       text-shadow: 0 2px 10px rgba(0,0,0,0.65);
     }
+    #hud.active { display: grid; }
     #banner {
       pointer-events: none;
       opacity: 0;
@@ -174,60 +142,7 @@
       -webkit-backdrop-filter: blur(6px);
       margin-bottom: 10px;
     }
-    #banner.show {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-    #note {
-      opacity: 0.9;
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
-
-    /* ─── iOS start screen ──────────────────────────────────────── */
-    #ios-start {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: #0a0a0a;
-      color: white;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      text-align: center;
-      padding: 32px;
-      z-index: 100;
-    }
-    #ios-start h1 {
-      font-size: clamp(22px, 6vw, 36px);
-      font-weight: 900;
-      color: #cc0000;
-      margin: 0;
-      letter-spacing: 0.02em;
-    }
-    #ios-start p {
-      font-size: 15px;
-      color: #ccc;
-      max-width: 320px;
-      line-height: 1.5;
-      margin: 0;
-    }
-    #startBtn {
-      pointer-events: all;
-      background: #cc0000;
-      color: white;
-      border: none;
-      border-radius: 50px;
-      padding: 16px 40px;
-      font-size: 18px;
-      font-weight: 700;
-      cursor: pointer;
-      letter-spacing: 0.03em;
-      box-shadow: 0 4px 20px rgba(200,0,0,0.5);
-    }
-    #startBtn:active { opacity: 0.8; }
+    #banner.show { opacity: 1; transform: translateY(0) scale(1); }
 
     /* ─── iOS camera feed ───────────────────────────────────────── */
     #cameraFeed {
@@ -262,15 +177,12 @@
       white-space: nowrap;
       z-index: 10;
     }
-    #welcomeBanner.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
+    #welcomeBanner.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
 
-  <!-- ── Splash screen (shown on all platforms before AR launches) ── -->
+  <!-- ── Splash screen — single tap launches AR on both platforms ── -->
   <div id="splash">
     <div class="splash-badge">AR Experience</div>
     <div class="splash-competition">SSE Airtricity Senior Women's Football</div>
@@ -282,35 +194,24 @@
       <strong>March 21st</strong> &nbsp;|&nbsp; <strong>3:00pm</strong><br>
       Dalymount Park
     </div>
+    <p class="splash-instruction">Point your camera at the sky and tap to begin</p>
     <button class="splash-cta" id="splashBtn">C'Mon Bohs! ⚽</button>
     <p class="splash-credit">Created by Tiny Wilderness</p>
   </div>
 
-  <!-- ── Closing card (shown after session timeout) ── -->
-  <div id="closing-card">
-    <img src="./assets/tw_logo.png" alt="Tiny Wilderness" />
-    <p>Created by <strong>Tiny Wilderness</strong></p>
-  </div>
-
-  <!-- Android WebXR HUD -->
+  <!-- Android WebXR HUD (hidden until session starts) -->
   <div id="hud">
     <div id="banner">C'Mon Bohs! 🔴⚫</div>
-    <div id="note">Point your camera at the sky and tap Mon Bohs!</div>
   </div>
 
-  <!-- iOS camera feed (shown after permission granted) -->
+  <!-- iOS camera feed -->
   <video id="cameraFeed" autoplay playsinline muted></video>
 
-  <!-- iOS welcome banner (shown mid-flight) -->
+  <!-- iOS welcome banner -->
   <div id="welcomeBanner">C'Mon Bohs! 🔴⚫</div>
 
-  <!-- iOS start screen -->
-  <div id="ios-start">
-    <h1>Bohemian FC AR</h1>
-    <p>Point your phone at the sky and tap the button to launch the experience.</p>
-    <button id="startBtn">C'Mon Bohs! ⚽</button>
-    <p style="font-size:13px; color:#888;">Allow camera access when prompted</p>
-  </div>
+  <!-- Hidden iOS start trigger (used by main-ios.js internally) -->
+  <button id="startBtn" style="display:none">start</button>
 
   <script type="importmap">
     {
@@ -327,67 +228,45 @@
     const params = new URLSearchParams(window.location.search);
     const cacheVersion = params.get("v") || String(Date.now());
 
-    // ── Closing card ────────────────────────────────────────────────
-    // Show after 90 seconds of AR session time
-    const SESSION_TIMEOUT_MS = 90 * 1000;
-    let sessionTimer = null;
-
-    function showClosingCard() {
-      const card = document.getElementById("closing-card");
-      card.style.display = "flex";
-      // Trigger fade-in on next frame
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => { card.classList.add("visible"); });
-      });
-    }
-
-    // Called once the AR session actually starts (splash dismissed + platform ready)
-    window._startSessionTimer = function() {
-      if (sessionTimer) return;
-      sessionTimer = setTimeout(showClosingCard, SESSION_TIMEOUT_MS);
-    };
-
-    // ── Splash dismiss ──────────────────────────────────────────────
     function dismissSplash() {
       const splash = document.getElementById("splash");
       splash.classList.add("fade-out");
       setTimeout(() => { splash.style.display = "none"; }, 650);
     }
 
-    document.getElementById("splashBtn").addEventListener("click", () => {
-      dismissSplash();
-      if (isIOS) {
-        document.getElementById("ios-start").style.display = "flex";
-      } else {
-        // Android: timer starts when splash is dismissed (WebXR session begins shortly after)
-        setTimeout(() => { if (window._startSessionTimer) window._startSessionTimer(); }, 2000);
-      }
-    });
-
-    // ── Platform routing ────────────────────────────────────────────
     if (isIOS) {
-      document.getElementById("hud").style.display = "none";
+      // iOS: load script first, then splash button triggers startExperience directly
       document.getElementById("cameraFeed").style.display = "block";
       document.getElementById("welcomeBanner").style.display = "block";
 
       const mainUrl = new URL("./main-ios.js", import.meta.url);
       mainUrl.searchParams.set("v", cacheVersion);
-      import(mainUrl.toString()).catch((err) => {
+      import(mainUrl.toString()).then(() => {
+        // Wire splash button to the hidden startBtn (which main-ios.js listens to)
+        document.getElementById("splashBtn").addEventListener("click", () => {
+          dismissSplash();
+          document.getElementById("startBtn").click();
+        });
+      }).catch((err) => {
         console.error("Failed to load iOS AR script:", err);
-        const note = document.getElementById("startBtn");
-        if (note) note.textContent = "Failed to load — please refresh";
+        document.getElementById("splashBtn").textContent = "Failed to load — please refresh";
       });
-    } else {
-      document.getElementById("ios-start").style.display = "none";
-      document.getElementById("cameraFeed").style.display = "none";
-      document.getElementById("welcomeBanner").style.display = "none";
 
+    } else {
+      // Android: load script, then splash button clicks the ARButton
       const mainUrl = new URL("./main-android.js", import.meta.url);
       mainUrl.searchParams.set("v", cacheVersion);
-      import(mainUrl.toString()).catch((err) => {
+      import(mainUrl.toString()).then(() => {
+        document.getElementById("splashBtn").addEventListener("click", () => {
+          dismissSplash();
+          // Show HUD and click the ARButton to start the WebXR session
+          document.getElementById("hud").classList.add("active");
+          const arBtn = document.getElementById("ARButton");
+          if (arBtn) arBtn.click();
+        });
+      }).catch((err) => {
         console.error("Failed to load Android AR script:", err);
-        const note = document.getElementById("note");
-        if (note) note.textContent = "Failed to load AR module. Check console.";
+        document.getElementById("splashBtn").textContent = "Failed to load — please refresh";
       });
     }
   </script>
