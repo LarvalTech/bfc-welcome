@@ -521,24 +521,33 @@ function createRabbitFallbackTexture() {
   return texture;
 }
 
+// Per-character movement personality profiles
+// Index matches RABBIT_TEXTURE_PATHS: 0=Welcome(home), 1=MonTheBohs(away), 2=Aviator(third)
+const RABBIT_PERSONALITIES = [
+  // Bunny 1 — Welcome / home kit: gentle, wide, lazy pendulum
+  { driftAmpX: 0.28, driftAmpZ: 0.10, driftFreq: 0.7, maxSwayRad: Math.PI / 5.5, chuteSwayMult: 0.35 },
+  // Bunny 2 — Mon the Bohs / away kit: expressive, bouncy, wider tilt
+  { driftAmpX: 0.38, driftAmpZ: 0.16, driftFreq: 1.2, maxSwayRad: Math.PI / 3.5, chuteSwayMult: 0.55 },
+  // Bunny 3 — Aviator / third kit: tight, minimal, controlled
+  { driftAmpX: 0.12, driftAmpZ: 0.06, driftFreq: 0.5, maxSwayRad: Math.PI / 10, chuteSwayMult: 0.15 },
+];
+
 function pickRabbitTexture() {
   const pool = rabbitRealTextures.length > 0 ? rabbitRealTextures : rabbitTextures;
-  if (!pool.length) return rabbitFallbackTexture;
+  if (!pool.length) return { texture: rabbitFallbackTexture, idx: 0 };
 
   // Always start with Bunny 1 (index 0)
   if (rabbitSpawnCount === 0) {
     lastRabbitTextureIdx = 0;
-    return pool[0];
+    return { texture: pool[0], idx: 0 };
   }
 
   // Avoid picking the same character twice in a row
-  // Use a round-robin with shuffle to ensure good variety
   const len = pool.length;
   let idx;
   if (len === 1) {
     idx = 0;
   } else {
-    // Pick randomly but exclude the last used index
     let attempts = 0;
     do {
       idx = Math.floor(Math.random() * len);
@@ -546,7 +555,7 @@ function pickRabbitTexture() {
     } while (idx === lastRabbitTextureIdx && attempts < 10);
   }
   lastRabbitTextureIdx = idx;
-  return pool[idx];
+  return { texture: pool[idx], idx };
 }
 
 function getTextureAspect(texture) {
@@ -558,7 +567,8 @@ function getTextureAspect(texture) {
 }
 
 function spawnRabbit(planeAltitude) {
-  const texture = pickRabbitTexture();
+  const { texture, idx: charIdx } = pickRabbitTexture();
+  const personality = RABBIT_PERSONALITIES[charIdx] || RABBIT_PERSONALITIES[0];
   const aspect = getTextureAspect(texture);
   const material = new THREE.SpriteMaterial({
     map: texture,
@@ -609,10 +619,12 @@ function spawnRabbit(planeAltitude) {
     startScale,
     endScale,
     fallSpeed: 0.10 + Math.random() * 0.08,
-    driftAmpX: 0.22 + Math.random() * 0.22,
-    driftAmpZ: 0.08 + Math.random() * 0.18,
-    driftFreq: 1.6 + Math.random() * 1.8,
-    rotationSpeed: (Math.random() - 0.5) * 2.4,
+    driftAmpX: personality.driftAmpX * (0.85 + Math.random() * 0.3),
+    driftAmpZ: personality.driftAmpZ * (0.85 + Math.random() * 0.3),
+    driftFreq: personality.driftFreq * (0.9 + Math.random() * 0.2),
+    maxSwayRad: personality.maxSwayRad,
+    chuteSwayMult: personality.chuteSwayMult,
+    rotationSpeed: (Math.random() - 0.5) * 0.6,
     phase: Math.random() * Math.PI * 2,
     age: 0,
   });
@@ -650,8 +662,10 @@ function getRabbitFallStep(rabbit, dt, phase) {
   }
 
   if (RABBIT_FALL_STYLE === RABBIT_FALL_STYLES.CHUTE) {
-    const sway = Math.sin(rabbit.phase + rabbit.age * 1.35);
-    const boundedSway = sway * CHUTE_MAX_SWAY_RADIANS;
+    const maxSway = rabbit.maxSwayRad !== undefined ? rabbit.maxSwayRad : CHUTE_MAX_SWAY_RADIANS;
+    const swayFreq = rabbit.driftFreq || 1.0;
+    const sway = Math.sin(rabbit.phase + rabbit.age * swayFreq);
+    const boundedSway = sway * maxSway;
     return {
       dy: rabbit.fallSpeed * RABBIT_PARACHUTE_FALL_DRAG * dt,
       dx: sway * rabbit.driftAmpX * 0.9 * dt,
@@ -711,7 +725,8 @@ function updateRabbits(dt, phase, allowSpawn = true) {
         rabbit.sprite.position.z
       );
       rabbit.parachuteSprite.scale.set(currentScale * 2.2, currentScale * 1.45, 1);
-      rabbit.parachuteSprite.material.rotation = rabbit.sprite.material.rotation * 0.4;
+      const chuteSwayMult = rabbit.chuteSwayMult !== undefined ? rabbit.chuteSwayMult : 0.4;
+      rabbit.parachuteSprite.material.rotation = rabbit.sprite.material.rotation * chuteSwayMult;
     }
 
     if (rabbit.sprite.position.y <= rabbit.groundY) {
