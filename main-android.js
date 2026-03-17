@@ -638,7 +638,12 @@ function spawnRabbit(planeAltitude) {
   const sprite = new THREE.Sprite(material);
   let parachuteSprite = null;
 
-  const groundY = -BASE_HEIGHT_ABOVE_CAMERA - 7.5 - Math.random() * 1.5;
+  // groundY in local root space. Root is 1m above camera, so:
+  //   y =  0.0 → 1m above camera (top of head)
+  //   y = -1.0 → camera eye level
+  //   y = -1.8 → roughly waist height
+  // We want bunnies to exit at the lower-right third of screen — just below eye level.
+  const groundY = -1.0 - Math.random() * 0.4;  // exits at eye level ±0.2m
   const spawnY = airplane.position.y - 0.05 - Math.random() * 0.12;
   // Lock consistent size regardless of plane altitude
   const startScaleBase = 0.12;
