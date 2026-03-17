@@ -562,9 +562,9 @@ function createParachuteTexture() {
   ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
   ctx.fill();
 
-  // Panel stripes
-  ctx.strokeStyle = "rgba(20, 20, 20, 0.75)";
-  ctx.lineWidth = 2;
+  // Panel stripes — wide black lines for visibility
+  ctx.strokeStyle = "rgba(20, 20, 20, 0.9)";
+  ctx.lineWidth = 6;
   for (let i = 1; i <= 4; i++) {
     const x = 16 + (i * (width - 32)) / 5;
     ctx.beginPath();
