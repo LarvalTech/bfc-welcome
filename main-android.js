@@ -77,7 +77,7 @@ let rabbitSpawnLeadApplied = false;
 let rabbitSpawnCount = 0;  // tracks total spawned so far
 let lastRabbitTextureIdx = -1;  // tracks last used texture to avoid repeats
 // Change this to scale all rabbits up/down.
-const RABBIT_SIZE_MULTIPLIER = 3.0;
+const RABBIT_SIZE_MULTIPLIER = 5.5;
 const RABBIT_SPAWN_LEAD_SECONDS = 0.5;
 const RABBIT_PARACHUTE_FALL_DRAG = 0.58;
 const CHUTE_MAX_SWAY_RADIANS = Math.PI / 4; // 45deg max from upright
@@ -570,7 +570,7 @@ function spawnRabbit(planeAltitude) {
   const sprite = new THREE.Sprite(material);
   let parachuteSprite = null;
 
-  const groundY = -BASE_HEIGHT_ABOVE_CAMERA - 0.6 - Math.random() * 0.25;
+  const groundY = -BASE_HEIGHT_ABOVE_CAMERA - 3.5 - Math.random() * 1.0;
   const spawnY = airplane.position.y - 0.05 - Math.random() * 0.12;
   const startScaleBase = THREE.MathUtils.clamp(0.18 / (1 + planeAltitude * 0.45), 0.045, 0.14);
   const endScaleBase = THREE.MathUtils.clamp(startScaleBase * (2.9 + Math.random() * 1.2), 0.2, 0.6);
@@ -608,7 +608,7 @@ function spawnRabbit(planeAltitude) {
     groundY,
     startScale,
     endScale,
-    fallSpeed: 0.18 + Math.random() * 0.14,
+    fallSpeed: 0.10 + Math.random() * 0.08,
     driftAmpX: 0.22 + Math.random() * 0.22,
     driftAmpZ: 0.08 + Math.random() * 0.18,
     driftFreq: 1.6 + Math.random() * 1.8,
@@ -674,7 +674,7 @@ function updateRabbits(dt, phase, allowSpawn = true) {
   if (rabbitRealTextures.length === 0) return;
 
   const altitude = Math.max(0.2, airplane.position.y);
-  const spawnRate = THREE.MathUtils.clamp(0.4 + altitude * 0.25, 0.4, 2.2);
+  const spawnRate = THREE.MathUtils.clamp(0.8 + altitude * 0.4, 0.8, 3.5);
 
   if (allowSpawn && !rabbitSpawnLeadApplied) {
     rabbitSpawnAccumulator += spawnRate * RABBIT_SPAWN_LEAD_SECONDS;
