@@ -643,7 +643,7 @@ function spawnRabbit(planeAltitude) {
   const spawnY = airplane.position.y - 0.05 - Math.random() * 0.12;
   // Fixed endScale — all bunnies reach the same size at groundY for a consistent vanishing size.
   const startScaleBase = 0.12;
-  const endScaleBase = 0.42;  // fixed, no random variation
+  const endScaleBase = 0.72;  // larger at vanishing point to compensate for deeper groundY (-2.8)
   const startScale = startScaleBase * RABBIT_SIZE_MULTIPLIER;
   const endScale = endScaleBase * RABBIT_SIZE_MULTIPLIER;
 
@@ -680,7 +680,7 @@ function spawnRabbit(planeAltitude) {
     groundY,
     startScale,
     endScale,
-    fallSpeed: 0.34 + Math.random() * 0.10,  // faster fall so bunnies reach vanishing point promptly
+    fallSpeed: 0.52 + Math.random() * 0.10,  // raised to keep descent feeling brisk over longer travel distance
     driftAmpX: personality.driftAmpX * (0.85 + Math.random() * 0.3),
     driftAmpZ: personality.driftAmpZ * (0.85 + Math.random() * 0.3),
     driftFreq: personality.driftFreq * (0.9 + Math.random() * 0.2),
@@ -750,7 +750,7 @@ function updateRabbits(dt, phase, allowSpawn = true) {
   if (rabbitRealTextures.length === 0) return;
 
   const altitude = Math.max(0.2, airplane.position.y);
-  const spawnRate = THREE.MathUtils.clamp(0.12 + altitude * 0.04, 0.12, 0.35);  // further reduced for more space between arrivals
+  const spawnRate = THREE.MathUtils.clamp(0.20 + altitude * 0.06, 0.20, 0.50);  // slightly raised to keep stream visible over longer fall distance
 
   if (allowSpawn && !rabbitSpawnLeadApplied) {
     rabbitSpawnAccumulator += spawnRate * RABBIT_SPAWN_LEAD_SECONDS;
