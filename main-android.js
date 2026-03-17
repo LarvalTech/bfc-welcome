@@ -189,7 +189,7 @@ function onXRFrame() {
   }
 
   if (started && airplane) {
-    // Flight now loops continuously — flightCompleted is never set to true.
+    // Plane flies indefinitely — continuous bunny stream, no pass limit.
     updateFlight(dt);
     updateRibbon(dt);
     updateParticles(dt);
@@ -278,29 +278,7 @@ function updateFlight(dt) {
   );
   const phase = previousPhase + currentFlightSpeed * dt;
 
-  // Loop flight: when the plane reaches the end, reset it to the start for another pass.
-  if (phase >= FLIGHT_SPAN_METERS) {
-    flightPassCount++;
-    previousPhase = 0;
-    currentFlightSpeed = FLIGHT_INITIAL_SPEED_MPS;
-    // Reset per-pass flags so mid-burst can fire again on subsequent passes
-    window._midBurst1Done = false;
-    window._midBurst2Done = false;
-    // Reset spawn lead so the next pass gets the same burst of bunnies at the start
-    rabbitSpawnLeadApplied = false;
-    rabbitSpawnAccumulator = 0;
-    // Clear the ribbon trail so it starts fresh each pass
-    trailPoints.length = 0;
-    if (ribbonMesh) {
-      experienceRoot.remove(ribbonMesh);
-      ribbonMesh.geometry.dispose();
-      ribbonMesh = null;
-    }
-    // Make sure the plane is visible for the next pass
-    airplane.visible = true;
-    return;
-  }
-
+  // Plane flies indefinitely — no span limit, continuous bunny stream.
   previousPhase = phase;
 
   // Move forward along root’s -Z (we’ll interpret local forward as -Z)
@@ -329,8 +307,8 @@ function updateFlight(dt) {
   trailPoints.push(TMP_POS.clone());
   if (trailPoints.length > 200) trailPoints.shift();
 
-  // Opening burst — fires immediately at the very start of the flight
-  if (!explosionTriggered && phase > FLIGHT_SPAN_METERS * 0.05) {
+  // Opening burst — fires ~1.4m into the flight (absolute distance, not span-relative)
+  if (!explosionTriggered && phase > 1.4) {
     triggerEurovisionBurst();
     explosionTriggered = true;
   }
@@ -771,7 +749,7 @@ function updateRabbits(dt, phase, allowSpawn = true) {
   if (rabbitRealTextures.length === 0) return;
 
   const altitude = Math.max(0.2, airplane.position.y);
-  const spawnRate = THREE.MathUtils.clamp(0.2 + altitude * 0.08, 0.2, 0.7);
+  const spawnRate = THREE.MathUtils.clamp(1.2 + altitude * 0.4, 1.2, 3.5);
 
   if (allowSpawn && !rabbitSpawnLeadApplied) {
     rabbitSpawnAccumulator += spawnRate * RABBIT_SPAWN_LEAD_SECONDS;
