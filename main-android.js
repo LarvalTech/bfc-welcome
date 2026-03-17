@@ -294,14 +294,16 @@ function updateFlight(dt) {
   // Using +Z is fine too, just be consistent.
   // Here we move along local -Z so "forward" is away from user.
   const z = -phase;
+  // Veer left (negative X) at a gentle constant rate, same altitude
+  const x = -phase * 0.18;
   const y =
     phase * CLIMB_RATE_PER_METER +
     phase * phase * CLIMB_QUADRATIC_PER_M2;
 
-  airplane.position.set(0, y, z);
+  airplane.position.set(x, y, z);
 
-  // Look forward along -Z direction in local space
-  TMP_LOOK.set(0, y, z - 1);
+  // Look forward along flight direction (left + forward)
+  TMP_LOOK.set(x - 0.18, y, z - 1);
   airplane.lookAt(TMP_LOOK);
 
   // Optional model offset if nose points wrong
@@ -647,15 +649,18 @@ function spawnRabbit(planeAltitude) {
 
   const groundY = -BASE_HEIGHT_ABOVE_CAMERA - 7.5 - Math.random() * 1.5;
   const spawnY = airplane.position.y - 0.05 - Math.random() * 0.12;
-  const startScaleBase = THREE.MathUtils.clamp(0.18 / (1 + planeAltitude * 0.45), 0.045, 0.14);
-  const endScaleBase = THREE.MathUtils.clamp(startScaleBase * (2.9 + Math.random() * 1.2), 0.2, 0.6);
+  // Lock consistent size regardless of plane altitude
+  const startScaleBase = 0.12;
+  const endScaleBase = 0.38 + Math.random() * 0.08;
   const startScale = startScaleBase * RABBIT_SIZE_MULTIPLIER;
   const endScale = endScaleBase * RABBIT_SIZE_MULTIPLIER;
 
+  // Spawn offset to the right side of the plane (positive X in local space)
+  // so bunnies appear to jump out the right door
   sprite.position.set(
-    airplane.position.x + (Math.random() - 0.5) * 0.35,
+    airplane.position.x + 0.4 + Math.random() * 0.2,
     spawnY,
-    airplane.position.z + (Math.random() - 0.5) * 0.35
+    airplane.position.z + (Math.random() - 0.5) * 0.25
   );
   sprite.scale.set(startScale * aspect, startScale, 1);
   experienceRoot.add(sprite);
