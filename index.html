@@ -7,7 +7,100 @@
   <style>
     html, body { margin:0; height:100%; overflow:hidden; background:#000; }
 
-    /* Shared HUD */
+    /* ─── Splash screen ─────────────────────────────────────────── */
+    #splash {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: #0d0d0d;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      text-align: center;
+      padding: 32px 24px;
+      transition: opacity 600ms ease;
+    }
+    #splash.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .splash-badge {
+      display: inline-block;
+      background: #cc0000;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 4px;
+      margin-bottom: 22px;
+    }
+    .splash-competition {
+      color: #aaa;
+      font-size: clamp(11px, 2.8vw, 14px);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .splash-teams {
+      color: #fff;
+      font-size: clamp(26px, 7vw, 52px);
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+      margin-bottom: 6px;
+    }
+    .splash-teams span {
+      color: #cc0000;
+    }
+    .splash-vs {
+      color: #555;
+      font-size: clamp(13px, 3vw, 18px);
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin: 4px 0;
+    }
+    .splash-divider {
+      width: 48px;
+      height: 2px;
+      background: #cc0000;
+      border-radius: 2px;
+      margin: 20px auto;
+    }
+    .splash-details {
+      color: #ccc;
+      font-size: clamp(13px, 3.2vw, 16px);
+      font-weight: 400;
+      line-height: 1.8;
+      letter-spacing: 0.01em;
+    }
+    .splash-details strong {
+      color: #fff;
+      font-weight: 600;
+    }
+    .splash-cta {
+      margin-top: 36px;
+      background: #cc0000;
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 15px 44px;
+      font-size: clamp(15px, 3.5vw, 18px);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow: 0 4px 24px rgba(200,0,0,0.45);
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+    .splash-cta:active { opacity: 0.8; transform: scale(0.97); }
+
+    /* ─── Shared HUD ────────────────────────────────────────────── */
     #hud {
       position: fixed;
       inset: 0;
@@ -45,7 +138,7 @@
       margin-bottom: 10px;
     }
 
-    /* iOS start screen */
+    /* ─── iOS start screen ──────────────────────────────────────── */
     #ios-start {
       display: none;
       position: fixed;
@@ -90,7 +183,7 @@
     }
     #startBtn:active { opacity: 0.8; }
 
-    /* iOS camera feed */
+    /* ─── iOS camera feed ───────────────────────────────────────── */
     #cameraFeed {
       display: none;
       position: fixed;
@@ -101,7 +194,7 @@
       z-index: 0;
     }
 
-    /* iOS welcome banner */
+    /* ─── iOS welcome banner ────────────────────────────────────── */
     #welcomeBanner {
       display: none;
       position: fixed;
@@ -130,6 +223,21 @@
   </style>
 </head>
 <body>
+
+  <!-- ── Splash screen (shown on all platforms before AR launches) ── -->
+  <div id="splash">
+    <div class="splash-badge">AR Experience</div>
+    <div class="splash-competition">SSE Airtricity Senior Women's Football</div>
+    <div class="splash-teams"><span>Bohemian FC</span></div>
+    <div class="splash-vs">vs</div>
+    <div class="splash-teams">Cork City</div>
+    <div class="splash-divider"></div>
+    <div class="splash-details">
+      <strong>March 21st</strong> &nbsp;|&nbsp; <strong>3:00pm</strong><br>
+      Dalymount Park
+    </div>
+    <button class="splash-cta" id="splashBtn">C'Mon Bohs! ⚽</button>
+  </div>
 
   <!-- Android WebXR HUD -->
   <div id="hud">
@@ -162,14 +270,27 @@
   <script type="module">
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    const isAndroid = /Android/.test(navigator.userAgent);
 
     const params = new URLSearchParams(window.location.search);
     const cacheVersion = params.get("v") || String(Date.now());
 
+    // ── Splash dismiss ──────────────────────────────────────────────
+    function dismissSplash() {
+      const splash = document.getElementById("splash");
+      splash.classList.add("fade-out");
+      setTimeout(() => { splash.style.display = "none"; }, 650);
+    }
+
+    document.getElementById("splashBtn").addEventListener("click", () => {
+      dismissSplash();
+      if (isIOS) {
+        document.getElementById("ios-start").style.display = "flex";
+      }
+    });
+
+    // ── Platform routing ────────────────────────────────────────────
     if (isIOS) {
-      // Show iOS start screen, hide Android HUD
-      document.getElementById("ios-start").style.display = "flex";
+      // Hide Android HUD; iOS start screen shown after splash dismissed
       document.getElementById("hud").style.display = "none";
       document.getElementById("cameraFeed").style.display = "block";
       document.getElementById("welcomeBanner").style.display = "block";
