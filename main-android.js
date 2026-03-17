@@ -429,7 +429,7 @@ function spawnParticle(worldPos, burst, branchy = false, black = false) {
   particleVelocities[base + 1] = vy;
   particleVelocities[base + 2] = vz;
 
-  particleLife[idx] = burst ? 3.5 : 1.4;
+  particleLife[idx] = burst ? 8.0 : 1.8;
 
   // Set vertex colour — red or black
   if (window._particleColors) {
