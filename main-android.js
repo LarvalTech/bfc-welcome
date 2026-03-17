@@ -546,21 +546,17 @@ function createParachuteTexture() {
   ctx.quadraticCurveTo(width / 2, 8, width - 16, 90);
   ctx.lineTo(16, 90);
   ctx.closePath();
-  ctx.fillStyle = "rgba(255, 255, 255, 0.93)";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
   ctx.fill();
 
-  // Thin suspension lines from canopy base edges down to a central point
-  ctx.strokeStyle = "rgba(30, 30, 30, 0.55)";
-  ctx.lineWidth = 0.8;
-  const lineTargetX = width / 2;
-  const lineTargetY = height - 4;
-  const lineCount = 6;
-  for (let i = 0; i <= lineCount; i++) {
-    const t = i / lineCount;
-    const lx = 16 + t * (width - 32);
+  // Panel stripes
+  ctx.strokeStyle = "rgba(20, 20, 20, 0.75)";
+  ctx.lineWidth = 2;
+  for (let i = 1; i <= 4; i++) {
+    const x = 16 + (i * (width - 32)) / 5;
     ctx.beginPath();
-    ctx.moveTo(lx, 90);
-    ctx.lineTo(lineTargetX, lineTargetY);
+    ctx.moveTo(x, 88);
+    ctx.quadraticCurveTo(width / 2, 20, x, 88);
     ctx.stroke();
   }
 
