@@ -15,6 +15,7 @@ const experienceRoot = new THREE.Group();
 
 let started = false;
 let hasPlacedRoot = false;
+let pendingScreenshot = false; // set true to capture next rendered frame
 
 // -----------------------------------------------
 // Plane + flight
@@ -139,23 +140,6 @@ function init() {
 
   window.addEventListener("resize", onResize);
 
-  // Start a parallel getUserMedia stream for screenshot compositing.
-  // WebXR passthrough is rendered by the OS compositor and is not accessible
-  // via canvas pixels — we need a separate video stream to composite with.
-  const screenshotVideo = document.createElement("video");
-  screenshotVideo.autoplay = true;
-  screenshotVideo.playsInline = true;
-  screenshotVideo.muted = true;
-  screenshotVideo.style.display = "none";
-  document.body.appendChild(screenshotVideo);
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false })
-    .then(stream => {
-      screenshotVideo.srcObject = stream;
-      screenshotVideo.play();
-      window._androidCameraVideo = screenshotVideo;
-    })
-    .catch(err => console.warn("Screenshot camera stream unavailable:", err));
-
   // Render loop
   renderer.setAnimationLoop(onXRFrame);
 }
@@ -213,6 +197,16 @@ function onXRFrame() {
   }
 
   renderer.render(scene, camera);
+
+  // Screenshot: capture the frame immediately after render while buffer is still valid
+  if (window.pendingScreenshot) {
+    window.pendingScreenshot = false;
+    try {
+      renderer.domElement.toBlob(blob => {
+        if (blob && window._onScreenshotBlob) window._onScreenshotBlob(blob);
+      }, "image/png");
+    } catch(e) { console.warn("Frame capture failed:", e); }
+  }
 }
 
 // -----------------------------------------------
