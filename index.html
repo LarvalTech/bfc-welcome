@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Bohemian FC — Welcome AR</title>
+  <meta name="description" content="Bohemian FC AR welcome experience. Created by Tiny Wilderness." />
+  <meta name="author" content="Tiny Wilderness" />
   <style>
     html, body { margin:0; height:100%; overflow:hidden; background:#000; }
 
@@ -99,6 +101,50 @@
       transition: opacity 150ms ease, transform 150ms ease;
     }
     .splash-cta:active { opacity: 0.8; transform: scale(0.97); }
+    .splash-credit {
+      margin-top: 28px;
+      font-size: 11px;
+      color: #444;
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── Closing card ──────────────────────────────────────────── */
+    #closing-card {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: #0d0d0d;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      text-align: center;
+      padding: 40px 24px;
+      opacity: 0;
+      transition: opacity 800ms ease;
+    }
+    #closing-card.visible {
+      opacity: 1;
+    }
+    #closing-card img {
+      width: clamp(72px, 18vw, 110px);
+      height: auto;
+      opacity: 0.88;
+    }
+    #closing-card p {
+      color: #888;
+      font-size: clamp(12px, 3vw, 15px);
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin: 0;
+    }
+    #closing-card strong {
+      color: #ccc;
+      font-weight: 600;
+    }
 
     /* ─── Shared HUD ────────────────────────────────────────────── */
     #hud {
@@ -237,6 +283,13 @@
       Dalymount Park
     </div>
     <button class="splash-cta" id="splashBtn">C'Mon Bohs! ⚽</button>
+    <p class="splash-credit">Created by Tiny Wilderness</p>
+  </div>
+
+  <!-- ── Closing card (shown after session timeout) ── -->
+  <div id="closing-card">
+    <img src="./assets/tw_logo.png" alt="Tiny Wilderness" />
+    <p>Created by <strong>Tiny Wilderness</strong></p>
   </div>
 
   <!-- Android WebXR HUD -->
@@ -274,6 +327,26 @@
     const params = new URLSearchParams(window.location.search);
     const cacheVersion = params.get("v") || String(Date.now());
 
+    // ── Closing card ────────────────────────────────────────────────
+    // Show after 90 seconds of AR session time
+    const SESSION_TIMEOUT_MS = 90 * 1000;
+    let sessionTimer = null;
+
+    function showClosingCard() {
+      const card = document.getElementById("closing-card");
+      card.style.display = "flex";
+      // Trigger fade-in on next frame
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => { card.classList.add("visible"); });
+      });
+    }
+
+    // Called once the AR session actually starts (splash dismissed + platform ready)
+    window._startSessionTimer = function() {
+      if (sessionTimer) return;
+      sessionTimer = setTimeout(showClosingCard, SESSION_TIMEOUT_MS);
+    };
+
     // ── Splash dismiss ──────────────────────────────────────────────
     function dismissSplash() {
       const splash = document.getElementById("splash");
@@ -285,12 +358,14 @@
       dismissSplash();
       if (isIOS) {
         document.getElementById("ios-start").style.display = "flex";
+      } else {
+        // Android: timer starts when splash is dismissed (WebXR session begins shortly after)
+        setTimeout(() => { if (window._startSessionTimer) window._startSessionTimer(); }, 2000);
       }
     });
 
     // ── Platform routing ────────────────────────────────────────────
     if (isIOS) {
-      // Hide Android HUD; iOS start screen shown after splash dismissed
       document.getElementById("hud").style.display = "none";
       document.getElementById("cameraFeed").style.display = "block";
       document.getElementById("welcomeBanner").style.display = "block";
@@ -303,7 +378,6 @@
         if (note) note.textContent = "Failed to load — please refresh";
       });
     } else {
-      // Android (or desktop) — use full WebXR
       document.getElementById("ios-start").style.display = "none";
       document.getElementById("cameraFeed").style.display = "none";
       document.getElementById("welcomeBanner").style.display = "none";
