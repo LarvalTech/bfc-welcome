@@ -645,7 +645,7 @@ function spawnRabbit(planeAltitude) {
   const sprite = new THREE.Sprite(material);
   let parachuteSprite = null;
 
-  const groundY = -BASE_HEIGHT_ABOVE_CAMERA - 3.5 - Math.random() * 1.0;
+  const groundY = -BASE_HEIGHT_ABOVE_CAMERA - 7.5 - Math.random() * 1.5;
   const spawnY = airplane.position.y - 0.05 - Math.random() * 0.12;
   const startScaleBase = THREE.MathUtils.clamp(0.18 / (1 + planeAltitude * 0.45), 0.045, 0.14);
   const endScaleBase = THREE.MathUtils.clamp(startScaleBase * (2.9 + Math.random() * 1.2), 0.2, 0.6);
