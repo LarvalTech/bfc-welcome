@@ -260,21 +260,6 @@ function spawnPlane() {
       airplane.position.set(0, 0, 0);
       experienceRoot.add(airplane);
 
-      // Attach Tiny Wilderness logo sprite to the tail
-      new THREE.TextureLoader().load("./assets/tw_logo.png", (tex) => {
-        const logoMat = new THREE.SpriteMaterial({
-          map: tex,
-          transparent: true,
-          opacity: 0.92,
-          depthWrite: false,
-        });
-        const logoSprite = new THREE.Sprite(logoMat);
-        // Position relative to airplane local space:
-        // tail is behind (+Z in model space) and slightly above fuselage
-        logoSprite.position.set(0.0, 0.55, 0.72);
-        logoSprite.scale.set(0.38, 0.38, 1);
-        airplane.add(logoSprite);
-      });
     },
     undefined,
     (err) => {
