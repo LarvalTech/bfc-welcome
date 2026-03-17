@@ -148,7 +148,7 @@ function setupParticles() {
   particleGeometry.setDrawRange(0, 0);
 
   particleMaterial = new THREE.PointsMaterial({
-    size: 0.06,
+    size: 0.09,
     color: 0xff2222,
     transparent: true,
     opacity: 0.95,
@@ -329,7 +329,7 @@ function updateRibbon(dt) {
   }
 
   const curve = new THREE.CatmullRomCurve3(trailPoints);
-  const geometry = new THREE.TubeGeometry(curve, 60, 0.05, 10, false);
+  const geometry = new THREE.TubeGeometry(curve, 60, 0.012, 6, false);
   const material = new THREE.MeshBasicMaterial({
     color: 0xcc0000,
     transparent: true,
@@ -365,10 +365,10 @@ function triggerEurovisionBurst() {
   airplane.localToWorld(worldPos);
 
   // Big star burst
-  for (let i = 0; i < 700; i++) spawnParticle(worldPos, /*burst=*/true);
+  for (let i = 0; i < 1400; i++) spawnParticle(worldPos, /*burst=*/true);
 
-  // Optional: add a “ribbon branch feel” using a directional bias (still particles)
-  for (let i = 0; i < 220; i++) spawnParticle(worldPos, /*burst=*/true, /*branchy=*/true);
+  // Directional bias burst for extra spread
+  for (let i = 0; i < 500; i++) spawnParticle(worldPos, /*burst=*/true, /*branchy=*/true);
 }
 
 function spawnParticle(worldPos, burst, branchy = false) {
