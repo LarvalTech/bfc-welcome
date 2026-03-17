@@ -294,7 +294,7 @@ function updateRibbon() {
   const geometry = new THREE.TubeGeometry(curve, 40, 0.05, 8, false);
 
   const material = new THREE.MeshBasicMaterial({
-    color: 0xff2fa3,
+    color: 0xcc0000,
     transparent: true,
     opacity: 0.8,
   });
@@ -342,7 +342,7 @@ function updateParticles() {
   );
 
   const material = new THREE.PointsMaterial({
-    color: 0xffff00,
+    color: 0xff2222,
     size: 0.08,
   });
 

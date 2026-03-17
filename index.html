@@ -3,9 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Eurovision Sky AR (Android)</title>
+  <title>Bohemian FC — Welcome AR</title>
   <style>
     html, body { margin:0; height:100%; overflow:hidden; background:#000; }
+
+    /* Shared HUD */
     #hud {
       position: fixed;
       inset: 0;
@@ -28,7 +30,7 @@
       letter-spacing: 0.02em;
       padding: 10px 14px;
       border-radius: 14px;
-      background: rgba(0,0,0,0.35);
+      background: rgba(180,0,0,0.75);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
       margin-bottom: 10px;
@@ -42,12 +44,111 @@
       font-size: 14px;
       margin-bottom: 10px;
     }
+
+    /* iOS start screen */
+    #ios-start {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #0a0a0a;
+      color: white;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      text-align: center;
+      padding: 32px;
+      z-index: 100;
+    }
+    #ios-start h1 {
+      font-size: clamp(22px, 6vw, 36px);
+      font-weight: 900;
+      color: #cc0000;
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+    #ios-start p {
+      font-size: 15px;
+      color: #ccc;
+      max-width: 320px;
+      line-height: 1.5;
+      margin: 0;
+    }
+    #startBtn {
+      pointer-events: all;
+      background: #cc0000;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 16px 40px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      box-shadow: 0 4px 20px rgba(200,0,0,0.5);
+    }
+    #startBtn:active { opacity: 0.8; }
+
+    /* iOS camera feed */
+    #cameraFeed {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    /* iOS welcome banner */
+    #welcomeBanner {
+      display: none;
+      position: fixed;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      opacity: 0;
+      transition: opacity 700ms ease, transform 700ms ease;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      font-weight: 800;
+      font-size: clamp(20px, 5vw, 40px);
+      color: white;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.65);
+      background: rgba(180,0,0,0.75);
+      padding: 10px 20px;
+      border-radius: 14px;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      white-space: nowrap;
+      z-index: 10;
+    }
+    #welcomeBanner.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
   </style>
 </head>
 <body>
+
+  <!-- Android WebXR HUD -->
   <div id="hud">
-    <div id="banner">Welcome to Eurovision ✨</div>
-    <div id="note">Tip: move your phone slowly for best tracking.</div>
+    <div id="banner">Mon the Bohs! 🔴⚫</div>
+    <div id="note">Point your camera at the sky and tap Start AR</div>
+  </div>
+
+  <!-- iOS camera feed (shown after permission granted) -->
+  <video id="cameraFeed" autoplay playsinline muted></video>
+
+  <!-- iOS welcome banner (shown mid-flight) -->
+  <div id="welcomeBanner">Mon the Bohs! 🔴⚫</div>
+
+  <!-- iOS start screen -->
+  <div id="ios-start">
+    <h1>Bohemian FC AR</h1>
+    <p>Point your phone at the sky and tap the button to launch the experience.</p>
+    <button id="startBtn">Launch AR ⚽</button>
+    <p style="font-size:13px; color:#888;">Allow camera access when prompted</p>
   </div>
 
   <script type="importmap">
@@ -57,16 +158,43 @@
       }
     }
   </script>
+
   <script type="module">
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isAndroid = /Android/.test(navigator.userAgent);
+
     const params = new URLSearchParams(window.location.search);
     const cacheVersion = params.get("v") || String(Date.now());
-    const mainUrl = new URL("./main-android.js", import.meta.url);
-    mainUrl.searchParams.set("v", cacheVersion);
-    import(mainUrl.toString()).catch((err) => {
-      console.error("Failed to load Android AR script:", err);
-      const note = document.getElementById("note");
-      if (note) note.textContent = "Failed to load AR module. Check console.";
-    });
+
+    if (isIOS) {
+      // Show iOS start screen, hide Android HUD
+      document.getElementById("ios-start").style.display = "flex";
+      document.getElementById("hud").style.display = "none";
+      document.getElementById("cameraFeed").style.display = "block";
+      document.getElementById("welcomeBanner").style.display = "block";
+
+      const mainUrl = new URL("./main-ios.js", import.meta.url);
+      mainUrl.searchParams.set("v", cacheVersion);
+      import(mainUrl.toString()).catch((err) => {
+        console.error("Failed to load iOS AR script:", err);
+        const note = document.getElementById("startBtn");
+        if (note) note.textContent = "Failed to load — please refresh";
+      });
+    } else {
+      // Android (or desktop) — use full WebXR
+      document.getElementById("ios-start").style.display = "none";
+      document.getElementById("cameraFeed").style.display = "none";
+      document.getElementById("welcomeBanner").style.display = "none";
+
+      const mainUrl = new URL("./main-android.js", import.meta.url);
+      mainUrl.searchParams.set("v", cacheVersion);
+      import(mainUrl.toString()).catch((err) => {
+        console.error("Failed to load Android AR script:", err);
+        const note = document.getElementById("note");
+        if (note) note.textContent = "Failed to load AR module. Check console.";
+      });
+    }
   </script>
 </body>
 </html>
