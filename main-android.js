@@ -77,7 +77,7 @@ let rabbitSpawnLeadApplied = false;
 let rabbitSpawnCount = 0;  // tracks total spawned so far
 let lastRabbitTextureIdx = -1;  // tracks last used texture to avoid repeats
 // Change this to scale all rabbits up/down.
-const RABBIT_SIZE_MULTIPLIER = 8.5;
+const RABBIT_SIZE_MULTIPLIER = 12.0;
 const RABBIT_SPAWN_LEAD_SECONDS = 0.5;
 const RABBIT_PARACHUTE_FALL_DRAG = 0.58;
 const CHUTE_MAX_SWAY_RADIANS = Math.PI / 4; // 45deg max from upright
