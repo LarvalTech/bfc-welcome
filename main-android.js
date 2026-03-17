@@ -77,7 +77,7 @@ let rabbitSpawnLeadApplied = false;
 let rabbitSpawnCount = 0;  // tracks total spawned so far
 let lastRabbitTextureIdx = -1;  // tracks last used texture to avoid repeats
 // Change this to scale all rabbits up/down.
-const RABBIT_SIZE_MULTIPLIER = 5.5;
+const RABBIT_SIZE_MULTIPLIER = 8.5;
 const RABBIT_SPAWN_LEAD_SECONDS = 0.5;
 const RABBIT_PARACHUTE_FALL_DRAG = 0.58;
 const CHUTE_MAX_SWAY_RADIANS = Math.PI / 4; // 45deg max from upright
@@ -524,12 +524,12 @@ function createRabbitFallbackTexture() {
 // Per-character movement personality profiles
 // Index matches RABBIT_TEXTURE_PATHS: 0=Welcome(home), 1=MonTheBohs(away), 2=Aviator(third)
 const RABBIT_PERSONALITIES = [
-  // Bunny 1 — Welcome / home kit: gentle, wide, lazy pendulum
-  { driftAmpX: 0.28, driftAmpZ: 0.10, driftFreq: 0.7, maxSwayRad: Math.PI / 5.5, chuteSwayMult: 0.35 },
+  // Bunny 1 — Welcome / home kit: tight, minimal, controlled (opens the show with composure)
+  { driftAmpX: 0.12, driftAmpZ: 0.06, driftFreq: 0.5, maxSwayRad: Math.PI / 10, chuteSwayMult: 0.15 },
   // Bunny 2 — Mon the Bohs / away kit: expressive, bouncy, wider tilt
   { driftAmpX: 0.38, driftAmpZ: 0.16, driftFreq: 1.2, maxSwayRad: Math.PI / 3.5, chuteSwayMult: 0.55 },
-  // Bunny 3 — Aviator / third kit: tight, minimal, controlled
-  { driftAmpX: 0.12, driftAmpZ: 0.06, driftFreq: 0.5, maxSwayRad: Math.PI / 10, chuteSwayMult: 0.15 },
+  // Bunny 3 — Aviator / third kit: gentle, wide, lazy pendulum (peeks out from behind Bunny 1)
+  { driftAmpX: 0.28, driftAmpZ: 0.10, driftFreq: 0.7, maxSwayRad: Math.PI / 5.5, chuteSwayMult: 0.35 },
 ];
 
 function pickRabbitTexture() {
