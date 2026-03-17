@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { GLTFLoader } from "../phoenix/vendor/three/addons/loaders/GLTFLoader.js";
-import { ARButton } from "../phoenix/vendor/three/addons/webxr/ARButton.js";
+import { GLTFLoader } from "./vendor/three/addons/loaders/GLTFLoader.js";
+import { ARButton } from "./vendor/three/addons/webxr/ARButton.js";
 
 // -----------------------------------------------
 // Scene / XR setup

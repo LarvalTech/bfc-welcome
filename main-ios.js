@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { GLTFLoader } from "../phoenix/vendor/three/addons/loaders/GLTFLoader.js";
+import { GLTFLoader } from "./vendor/three/addons/loaders/GLTFLoader.js";
 
 let scene, camera, renderer;
 let airplane;
