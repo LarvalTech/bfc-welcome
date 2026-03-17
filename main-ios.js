@@ -85,13 +85,24 @@ async function startExperience() {
   const startBtn = document.getElementById("startBtn");
   startBtn.disabled = true;
 
-  await startCamera();
+  // Request motion permission FIRST while still within the user gesture context.
+  // On iOS 13+, DeviceOrientationEvent.requestPermission() must be called
+  // synchronously within a user-initiated event — doing it after getUserMedia
+  // breaks the gesture chain and the dialog is silently blocked.
   try {
     await startOrientationTracking();
-    await waitForInitialOrientationSample();
   } catch (err) {
     console.warn("Device orientation unavailable:", err);
   }
+
+  await startCamera();
+
+  try {
+    await waitForInitialOrientationSample();
+  } catch (err) {
+    console.warn("Orientation sample timeout:", err);
+  }
+
   calibrateHeadingToCurrentView();
   updateCameraFromDeviceOrientation();
   initializeWorldFlightPath();
