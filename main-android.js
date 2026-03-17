@@ -546,10 +546,23 @@ function createParachuteTexture() {
   ctx.quadraticCurveTo(width / 2, 8, width - 16, 90);
   ctx.lineTo(16, 90);
   ctx.closePath();
-  ctx.fillStyle = "rgba(240, 237, 228, 0.93)";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.93)";
   ctx.fill();
 
-  // No panel stripes — clean canopy
+  // Thin suspension lines from canopy base edges down to a central point
+  ctx.strokeStyle = "rgba(30, 30, 30, 0.55)";
+  ctx.lineWidth = 0.8;
+  const lineTargetX = width / 2;
+  const lineTargetY = height - 4;
+  const lineCount = 6;
+  for (let i = 0; i <= lineCount; i++) {
+    const t = i / lineCount;
+    const lx = 16 + t * (width - 32);
+    ctx.beginPath();
+    ctx.moveTo(lx, 90);
+    ctx.lineTo(lineTargetX, lineTargetY);
+    ctx.stroke();
+  }
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -664,8 +677,8 @@ function spawnRabbit(planeAltitude) {
       depthWrite: false,
     });
     parachuteSprite = new THREE.Sprite(parachuteMaterial);
-    parachuteSprite.position.set(sprite.position.x, sprite.position.y + startScale * 1.7, sprite.position.z);
-    parachuteSprite.scale.set(startScale * 2.2, startScale * 1.45, 1);
+    parachuteSprite.position.set(sprite.position.x, sprite.position.y + startScale * 1.4, sprite.position.z);
+    parachuteSprite.scale.set(startScale * 1.5, startScale * 1.0, 1);
     experienceRoot.add(parachuteSprite);
   }
 
