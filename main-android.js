@@ -74,6 +74,8 @@ const rabbitRealTextures = [];
 let rabbitSpawnAccumulator = 0;
 let rabbitFallbackTexture = null;
 let rabbitSpawnLeadApplied = false;
+let rabbitSpawnCount = 0;  // tracks total spawned so far
+let lastRabbitTextureIdx = -1;  // tracks last used texture to avoid repeats
 // Change this to scale all rabbits up/down.
 const RABBIT_SIZE_MULTIPLIER = 3.0;
 const RABBIT_SPAWN_LEAD_SECONDS = 0.5;
@@ -520,13 +522,31 @@ function createRabbitFallbackTexture() {
 }
 
 function pickRabbitTexture() {
-  if (rabbitRealTextures.length > 0) {
-    const idx = Math.floor(Math.random() * rabbitRealTextures.length);
-    return rabbitRealTextures[idx];
+  const pool = rabbitRealTextures.length > 0 ? rabbitRealTextures : rabbitTextures;
+  if (!pool.length) return rabbitFallbackTexture;
+
+  // Always start with Bunny 1 (index 0)
+  if (rabbitSpawnCount === 0) {
+    lastRabbitTextureIdx = 0;
+    return pool[0];
   }
-  if (!rabbitTextures.length) return rabbitFallbackTexture;
-  const idx = Math.floor(Math.random() * rabbitTextures.length);
-  return rabbitTextures[idx];
+
+  // Avoid picking the same character twice in a row
+  // Use a round-robin with shuffle to ensure good variety
+  const len = pool.length;
+  let idx;
+  if (len === 1) {
+    idx = 0;
+  } else {
+    // Pick randomly but exclude the last used index
+    let attempts = 0;
+    do {
+      idx = Math.floor(Math.random() * len);
+      attempts++;
+    } while (idx === lastRabbitTextureIdx && attempts < 10);
+  }
+  lastRabbitTextureIdx = idx;
+  return pool[idx];
 }
 
 function getTextureAspect(texture) {
@@ -578,6 +598,8 @@ function spawnRabbit(planeAltitude) {
     experienceRoot.add(parachuteSprite);
   }
 
+  rabbitSpawnCount++;
+
   rabbits.push({
     sprite,
     parachuteSprite,
@@ -586,7 +608,7 @@ function spawnRabbit(planeAltitude) {
     groundY,
     startScale,
     endScale,
-    fallSpeed: 0.38 + Math.random() * 0.35,
+    fallSpeed: 0.18 + Math.random() * 0.14,
     driftAmpX: 0.22 + Math.random() * 0.22,
     driftAmpZ: 0.08 + Math.random() * 0.18,
     driftFreq: 1.6 + Math.random() * 1.8,
@@ -652,7 +674,7 @@ function updateRabbits(dt, phase, allowSpawn = true) {
   if (rabbitRealTextures.length === 0) return;
 
   const altitude = Math.max(0.2, airplane.position.y);
-  const spawnRate = THREE.MathUtils.clamp(1.0 + altitude * 0.75, 1.2, 7.2);
+  const spawnRate = THREE.MathUtils.clamp(0.4 + altitude * 0.25, 0.4, 2.2);
 
   if (allowSpawn && !rabbitSpawnLeadApplied) {
     rabbitSpawnAccumulator += spawnRate * RABBIT_SPAWN_LEAD_SECONDS;
