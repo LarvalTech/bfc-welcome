@@ -540,9 +540,9 @@ function createParachuteTexture() {
   ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
   ctx.fill();
 
-  // Panel stripes — medium black lines (66% thinner than previous)
-  ctx.strokeStyle = "rgba(20, 20, 20, 0.9)";
-  ctx.lineWidth = 2;
+  // Panel stripes — thin light-grey lines
+  ctx.strokeStyle = "rgba(180, 180, 180, 0.85)";
+  ctx.lineWidth = 1;
   for (let i = 1; i <= 4; i++) {
     const x = 16 + (i * (width - 32)) / 5;
     ctx.beginPath();
@@ -664,8 +664,8 @@ function spawnRabbit(planeAltitude) {
       depthWrite: false,
     });
     parachuteSprite = new THREE.Sprite(parachuteMaterial);
-    parachuteSprite.position.set(sprite.position.x, sprite.position.y + startScale * 1.7, sprite.position.z);
-    parachuteSprite.scale.set(startScale * 2.2, startScale * 1.45, 1);
+    parachuteSprite.position.set(sprite.position.x, sprite.position.y + startScale * 1.1, sprite.position.z);
+    parachuteSprite.scale.set(startScale * 1.4, startScale * 0.9, 1);
     experienceRoot.add(parachuteSprite);
   }
 
@@ -782,10 +782,10 @@ function updateRabbits(dt, phase, allowSpawn = true) {
     if (rabbit.parachuteSprite) {
       rabbit.parachuteSprite.position.set(
         rabbit.sprite.position.x,
-        rabbit.sprite.position.y + currentScale * 1.7,
+        rabbit.sprite.position.y + currentScale * 1.1,
         rabbit.sprite.position.z
       );
-      rabbit.parachuteSprite.scale.set(currentScale * 2.2, currentScale * 1.45, 1);
+      rabbit.parachuteSprite.scale.set(currentScale * 1.4, currentScale * 0.9, 1);
       const chuteSwayMult = rabbit.chuteSwayMult !== undefined ? rabbit.chuteSwayMult : 0.4;
       rabbit.parachuteSprite.material.rotation = rabbit.sprite.material.rotation * chuteSwayMult;
     }
