@@ -175,40 +175,6 @@
     }
     #banner.show { opacity: 1; transform: translateY(0) scale(1); }
 
-    /* Screenshot button */
-    #screenshot-btn {
-      pointer-events: all;
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.18);
-      border: 3px solid rgba(255,255,255,0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      transition: transform 120ms ease, opacity 120ms ease;
-    }
-    #screenshot-btn:active { transform: scale(0.88); opacity: 0.7; }
-    #screenshot-btn svg { width: 28px; height: 28px; fill: #fff; }
-
-    /* Shutter flash overlay */
-    #shutter-flash {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: #fff;
-      opacity: 0;
-      pointer-events: none;
-      z-index: 500;
-      transition: opacity 80ms ease;
-    }
-    #shutter-flash.flash {
-      display: block;
-      opacity: 0.85;
-    }
 
     /* ─── iOS camera feed ───────────────────────────────────────── */
     #cameraFeed {
@@ -276,14 +242,6 @@
     </div>
     <div class="hud-bottom">
       <div id="banner">C'Mon Bohs! 🔴⚫</div>
-      <!-- Screenshot / share button -->
-      <button id="screenshot-btn" title="Take a photo">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0
-            2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9zm3 15a5 5 0 1 1 0-10 5 5 0 0 1 0
-            10zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
-        </svg>
-      </button>
     </div>
   </div>
 
@@ -326,85 +284,6 @@
     if (isReturn) logEvent("return_visit");
     localStorage.setItem(MATCH_KEY, "1");
 
-    // ── Shutter flash ───────────────────────────────────────────────
-    function triggerShutterFlash() {
-      const flash = document.getElementById("shutter-flash");
-      flash.classList.add("flash");
-      setTimeout(() => {
-        flash.style.transition = "opacity 300ms ease";
-        flash.style.opacity = "0";
-        setTimeout(() => {
-          flash.classList.remove("flash");
-          flash.style.transition = "";
-          flash.style.opacity = "";
-        }, 320);
-      }, 80);
-    }
-
-    // ── Screenshot capture & share ──────────────────────────────────
-    async function takeScreenshot() {
-      triggerShutterFlash();
-      logEvent("screenshot_taken");
-
-      // Small delay to let the current frame settle
-      await new Promise(r => setTimeout(r, 60));
-
-      try {
-        // Find the WebGL canvas (Three.js renderer)
-        const canvas = document.querySelector("canvas");
-        if (!canvas) throw new Error("No canvas found");
-
-        if (isIOS) {
-          // iOS: composite camera feed + Three.js canvas into an offscreen canvas
-          const offscreen = document.createElement("canvas");
-          offscreen.width = canvas.width;
-          offscreen.height = canvas.height;
-          const ctx = offscreen.getContext("2d");
-
-          const video = document.getElementById("cameraFeed");
-          if (video && video.readyState >= 2) {
-            ctx.drawImage(video, 0, 0, offscreen.width, offscreen.height);
-          }
-          ctx.drawImage(canvas, 0, 0);
-
-          const blob = await new Promise(res => offscreen.toBlob(res, "image/png"));
-          await shareOrDownload(blob);
-        } else {
-          // Android WebXR: request a frame capture from inside the XR render loop.
-          // preserveDrawingBuffer is true but the XR compositor clears the framebuffer
-          // before JS can read it — so we set a flag and let the render loop do the capture
-          // synchronously right after renderer.render(), then call back here.
-          const blob = await new Promise((resolve) => {
-            window._onScreenshotBlob = (b) => { window._onScreenshotBlob = null; resolve(b); };
-            window.pendingScreenshot = true; // picked up by onXRFrame in main-android.js
-          });
-          await shareOrDownload(blob);
-        }
-      } catch (err) {
-        console.warn("Screenshot failed:", err);
-      }
-    }
-
-    async function shareOrDownload(blob) {
-      const file = new File([blob], "cmon-bohs.png", { type: "image/png" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: "C'Mon Bohs! ⚽",
-          text: "Bohemian FC AR experience — Dalymount Park, March 21st"
-        });
-      } else {
-        // Fallback: trigger download
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "cmon-bohs.png";
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-    }
-
-    document.getElementById("screenshot-btn").addEventListener("click", takeScreenshot);
 
     // ── Selfie toggle (iOS only) ────────────────────────────────────
     let selfieModeActive = false;
