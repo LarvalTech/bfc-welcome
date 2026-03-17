@@ -139,6 +139,23 @@ function init() {
 
   window.addEventListener("resize", onResize);
 
+  // Start a parallel getUserMedia stream for screenshot compositing.
+  // WebXR passthrough is rendered by the OS compositor and is not accessible
+  // via canvas pixels — we need a separate video stream to composite with.
+  const screenshotVideo = document.createElement("video");
+  screenshotVideo.autoplay = true;
+  screenshotVideo.playsInline = true;
+  screenshotVideo.muted = true;
+  screenshotVideo.style.display = "none";
+  document.body.appendChild(screenshotVideo);
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false })
+    .then(stream => {
+      screenshotVideo.srcObject = stream;
+      screenshotVideo.play();
+      window._androidCameraVideo = screenshotVideo;
+    })
+    .catch(err => console.warn("Screenshot camera stream unavailable:", err));
+
   // Render loop
   renderer.setAnimationLoop(onXRFrame);
 }

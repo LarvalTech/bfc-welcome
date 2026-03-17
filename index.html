@@ -370,8 +370,26 @@
           const blob = await new Promise(res => offscreen.toBlob(res, "image/png"));
           await shareOrDownload(blob);
         } else {
-          // Android WebXR: canvas already has the composited frame
-          const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+          // Android WebXR: composite the getUserMedia camera stream with the Three.js canvas.
+          // The WebXR passthrough is OS-level and not accessible via canvas pixels,
+          // so we grab a frame from the parallel camera stream started in main-android.js.
+          const offscreen = document.createElement("canvas");
+          offscreen.width = canvas.width;
+          offscreen.height = canvas.height;
+          const ctx = offscreen.getContext("2d");
+
+          const camVideo = window._androidCameraVideo;
+          if (camVideo && camVideo.readyState >= 2) {
+            // Draw camera background, then Three.js overlay
+            ctx.drawImage(camVideo, 0, 0, offscreen.width, offscreen.height);
+          } else {
+            // Fallback: dark background so the image isn't blank
+            ctx.fillStyle = "#111";
+            ctx.fillRect(0, 0, offscreen.width, offscreen.height);
+          }
+          ctx.drawImage(canvas, 0, 0);
+
+          const blob = await new Promise(res => offscreen.toBlob(res, "image/png"));
           await shareOrDownload(blob);
         }
       } catch (err) {
