@@ -638,21 +638,25 @@ function spawnRabbit(planeAltitude) {
   const sprite = new THREE.Sprite(material);
   let parachuteSprite = null;
 
-  // Fixed groundY — all bunnies vanish at the same height so they share one vanishing point.
-  const groundY = -2.8;  // lower disappear point so bunnies stay on screen longer
+  // groundY in local root space. Root is 1m above camera, so:
+  //   y =  0.0 → 1m above camera (top of head)
+  //   y = -1.0 → camera eye level
+  //   y = -1.8 → roughly waist height
+  // We want bunnies to exit at the lower-right third of screen — just below eye level.
+  const groundY = -1.0 - Math.random() * 0.4;  // exits at eye level ±0.2m
   const spawnY = airplane.position.y - 0.05 - Math.random() * 0.12;
-  // Fixed endScale — all bunnies reach the same size at groundY for a consistent vanishing size.
+  // Lock consistent size regardless of plane altitude
   const startScaleBase = 0.12;
-  const endScaleBase = 0.72;  // larger at vanishing point to compensate for deeper groundY (-2.8)
+  const endScaleBase = 0.38 + Math.random() * 0.08;
   const startScale = startScaleBase * RABBIT_SIZE_MULTIPLIER;
   const endScale = endScaleBase * RABBIT_SIZE_MULTIPLIER;
 
-  // Fixed Z depth — all bunnies spawn at the same depth so perspective scaling is identical.
-  // Lateral spread (X) stays random to give natural spread across the screen.
+  // Spawn offset to the right side of the plane (positive X in local space)
+  // so bunnies appear to jump out the right door
   sprite.position.set(
     airplane.position.x + 0.4 + Math.random() * 0.2,
     spawnY,
-    airplane.position.z  // no Z randomness — consistent depth for all
+    airplane.position.z + (Math.random() - 0.5) * 0.25
   );
   sprite.scale.set(startScale * aspect, startScale, 1);
   experienceRoot.add(sprite);
@@ -680,7 +684,7 @@ function spawnRabbit(planeAltitude) {
     groundY,
     startScale,
     endScale,
-    fallSpeed: 0.52 + Math.random() * 0.10,  // raised to keep descent feeling brisk over longer travel distance
+    fallSpeed: 0.21 + Math.random() * 0.09,  // 50% slower than previous
     driftAmpX: personality.driftAmpX * (0.85 + Math.random() * 0.3),
     driftAmpZ: personality.driftAmpZ * (0.85 + Math.random() * 0.3),
     driftFreq: personality.driftFreq * (0.9 + Math.random() * 0.2),
@@ -750,7 +754,7 @@ function updateRabbits(dt, phase, allowSpawn = true) {
   if (rabbitRealTextures.length === 0) return;
 
   const altitude = Math.max(0.2, airplane.position.y);
-  const spawnRate = THREE.MathUtils.clamp(0.20 + altitude * 0.06, 0.20, 0.50);  // slightly raised to keep stream visible over longer fall distance
+  const spawnRate = THREE.MathUtils.clamp(0.36 + altitude * 0.12, 0.36, 1.0);  // midpoint between 0.24-0.70 and 0.48-1.4
 
   if (allowSpawn && !rabbitSpawnLeadApplied) {
     rabbitSpawnAccumulator += spawnRate * RABBIT_SPAWN_LEAD_SECONDS;
