@@ -537,7 +537,7 @@ function createParachuteTexture() {
   ctx.quadraticCurveTo(width / 2, 8, width - 16, 90);
   ctx.lineTo(16, 90);
   ctx.closePath();
-  ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+  ctx.fillStyle = "rgba(245, 238, 225, 0.93)";  // warm creamy beige matching bunny head colour
   ctx.fill();
 
   // Panel stripes — thin light-grey lines
