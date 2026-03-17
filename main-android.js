@@ -677,8 +677,8 @@ function spawnRabbit(planeAltitude) {
       depthWrite: false,
     });
     parachuteSprite = new THREE.Sprite(parachuteMaterial);
-    parachuteSprite.position.set(sprite.position.x, sprite.position.y + startScale * 1.4, sprite.position.z);
-    parachuteSprite.scale.set(startScale * 1.5, startScale * 1.0, 1);
+    parachuteSprite.position.set(sprite.position.x, sprite.position.y + startScale * 0.85, sprite.position.z);
+    parachuteSprite.scale.set(startScale * 1.1, startScale * 0.75, 1);
     experienceRoot.add(parachuteSprite);
   }
 
@@ -795,10 +795,10 @@ function updateRabbits(dt, phase, allowSpawn = true) {
     if (rabbit.parachuteSprite) {
       rabbit.parachuteSprite.position.set(
         rabbit.sprite.position.x,
-        rabbit.sprite.position.y + currentScale * 1.7,
+        rabbit.sprite.position.y + currentScale * 0.85,
         rabbit.sprite.position.z
       );
-      rabbit.parachuteSprite.scale.set(currentScale * 2.2, currentScale * 1.45, 1);
+      rabbit.parachuteSprite.scale.set(currentScale * 1.1, currentScale * 0.75, 1);
       const chuteSwayMult = rabbit.chuteSwayMult !== undefined ? rabbit.chuteSwayMult : 0.4;
       rabbit.parachuteSprite.material.rotation = rabbit.sprite.material.rotation * chuteSwayMult;
     }
