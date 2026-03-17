@@ -750,7 +750,7 @@ function updateRabbits(dt, phase, allowSpawn = true) {
   if (rabbitRealTextures.length === 0) return;
 
   const altitude = Math.max(0.2, airplane.position.y);
-  const spawnRate = THREE.MathUtils.clamp(0.25 + altitude * 0.08, 0.25, 0.70);  // reduced to give space between arrivals
+  const spawnRate = THREE.MathUtils.clamp(0.12 + altitude * 0.04, 0.12, 0.35);  // further reduced for more space between arrivals
 
   if (allowSpawn && !rabbitSpawnLeadApplied) {
     rabbitSpawnAccumulator += spawnRate * RABBIT_SPAWN_LEAD_SECONDS;
