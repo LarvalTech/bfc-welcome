@@ -314,18 +314,8 @@ function updateFlight(dt) {
   trailPoints.push(TMP_POS.clone());
   if (trailPoints.length > 200) trailPoints.shift();
 
-  // Mid-flight burst at 35% of flight
-  if (!window._midBurst1Done && phase > FLIGHT_SPAN_METERS * 0.35) {
-    triggerMidBurst();
-    window._midBurst1Done = true;
-  }
-  // Mid-flight burst at 60%
-  if (!window._midBurst2Done && phase > FLIGHT_SPAN_METERS * 0.60) {
-    triggerMidBurst();
-    window._midBurst2Done = true;
-  }
-  // Main finale burst at 80%
-  if (!explosionTriggered && phase > FLIGHT_SPAN_METERS * 0.80) {
+  // Opening burst — fires immediately at the very start of the flight
+  if (!explosionTriggered && phase > FLIGHT_SPAN_METERS * 0.05) {
     triggerEurovisionBurst();
     explosionTriggered = true;
   }
@@ -693,7 +683,7 @@ function spawnRabbit(planeAltitude) {
     groundY,
     startScale,
     endScale,
-    fallSpeed: 0.10 + Math.random() * 0.08,
+    fallSpeed: 0.22 + Math.random() * 0.12,
     driftAmpX: personality.driftAmpX * (0.85 + Math.random() * 0.3),
     driftAmpZ: personality.driftAmpZ * (0.85 + Math.random() * 0.3),
     driftFreq: personality.driftFreq * (0.9 + Math.random() * 0.2),
