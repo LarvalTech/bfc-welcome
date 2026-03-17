@@ -448,18 +448,26 @@ function setupRabbitTextures() {
   rabbitParachuteTexture = createParachuteTexture();
   rabbitTextures.push(rabbitFallbackTexture);
 
-  for (const path of RABBIT_TEXTURE_PATHS) {
+  // Pre-allocate slots to guarantee order matches RABBIT_TEXTURE_PATHS indices
+  rabbitRealTextures.length = RABBIT_TEXTURE_PATHS.length;
+  let loadedCount = 0;
+  RABBIT_TEXTURE_PATHS.forEach((path, i) => {
     textureLoader.load(
       path,
       (texture) => {
         texture.colorSpace = THREE.SRGBColorSpace;
+        rabbitRealTextures[i] = texture;  // slot by index — order preserved
         rabbitTextures.push(texture);
-        rabbitRealTextures.push(texture);
+        loadedCount++;
       },
       undefined,
-      () => {}
+      () => {
+        // On error, fill slot with fallback so indices stay aligned
+        rabbitRealTextures[i] = rabbitFallbackTexture;
+        loadedCount++;
+      }
     );
-  }
+  });
 }
 
 function createParachuteTexture() {
