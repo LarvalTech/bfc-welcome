@@ -477,12 +477,12 @@ function createParachuteTexture() {
   ctx.quadraticCurveTo(width / 2, 8, width - 16, 90);
   ctx.lineTo(16, 90);
   ctx.closePath();
-  ctx.fillStyle = "rgba(200, 0, 0, 0.95)";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
   ctx.fill();
 
   // Panel stripes
-  ctx.strokeStyle = "rgba(20, 20, 20, 0.9)";
-  ctx.lineWidth = 6;
+  ctx.strokeStyle = "rgba(20, 20, 20, 0.75)";
+  ctx.lineWidth = 2;
   for (let i = 1; i <= 4; i++) {
     const x = 16 + (i * (width - 32)) / 5;
     ctx.beginPath();
