@@ -25,10 +25,7 @@
       padding: 32px 24px;
       transition: opacity 600ms ease;
     }
-    #splash.fade-out {
-      opacity: 0;
-      pointer-events: none;
-    }
+    #splash.fade-out { opacity: 0; pointer-events: none; }
     .splash-badge {
       display: inline-block;
       background: #cc0000;
@@ -113,13 +110,12 @@
     /* ─── Hide the native ARButton — splash button drives the session ── */
     #ARButton { display: none !important; }
 
-    /* ─── Android HUD (shown only during AR session) ────────────── */
+    /* ─── Android HUD ───────────────────────────────────────────── */
     #hud {
       display: none;
       position: fixed;
       inset: 0;
       pointer-events: none;
-      display: none;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
@@ -127,24 +123,42 @@
       font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       color: white;
       text-shadow: 0 2px 10px rgba(0,0,0,0.65);
+      z-index: 10;
     }
     #hud.active { display: flex; }
-    #stop-ar-btn {
+
+    /* Top row: stop button left, selfie toggle right (iOS only) */
+    .hud-top {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       pointer-events: all;
-      align-self: flex-end;
+    }
+    #stop-ar-btn, #selfie-toggle-btn {
       background: rgba(0,0,0,0.45);
       color: #fff;
       border: 1px solid rgba(255,255,255,0.35);
       border-radius: 50px;
-      padding: 9px 22px;
+      padding: 9px 18px;
       font-size: 13px;
       font-weight: 600;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
       cursor: pointer;
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
     }
-    #stop-ar-btn:active { opacity: 0.7; }
+    #stop-ar-btn:active, #selfie-toggle-btn:active { opacity: 0.7; }
+    #selfie-toggle-btn { display: none; } /* shown only on iOS */
+
+    /* Bottom row: banner + screenshot button */
+    .hud-bottom {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
     #banner {
       pointer-events: none;
       opacity: 0;
@@ -158,9 +172,43 @@
       background: rgba(180,0,0,0.75);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
-      margin-bottom: 10px;
     }
     #banner.show { opacity: 1; transform: translateY(0) scale(1); }
+
+    /* Screenshot button */
+    #screenshot-btn {
+      pointer-events: all;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      border: 3px solid rgba(255,255,255,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: transform 120ms ease, opacity 120ms ease;
+    }
+    #screenshot-btn:active { transform: scale(0.88); opacity: 0.7; }
+    #screenshot-btn svg { width: 28px; height: 28px; fill: #fff; }
+
+    /* Shutter flash overlay */
+    #shutter-flash {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 500;
+      transition: opacity 80ms ease;
+    }
+    #shutter-flash.flash {
+      display: block;
+      opacity: 0.85;
+    }
 
     /* ─── iOS camera feed ───────────────────────────────────────── */
     #cameraFeed {
@@ -200,7 +248,7 @@
 </head>
 <body>
 
-  <!-- ── Splash screen — single tap launches AR on both platforms ── -->
+  <!-- ── Splash screen ── -->
   <div id="splash">
     <div class="splash-badge">AR Experience</div>
     <div class="splash-competition">SSE Airtricity Senior Women's Football</div>
@@ -217,10 +265,26 @@
     <p class="splash-credit">Created by Tiny Wilderness</p>
   </div>
 
-  <!-- Android WebXR HUD (hidden until session starts) -->
+  <!-- Shutter flash overlay -->
+  <div id="shutter-flash"></div>
+
+  <!-- HUD — used by both Android (WebXR) and iOS -->
   <div id="hud">
-    <button id="stop-ar-btn">&#x2715; End AR</button>
-    <div id="banner">C'Mon Bohs! 🔴⚫</div>
+    <div class="hud-top">
+      <button id="stop-ar-btn">&#x2715; End AR</button>
+      <button id="selfie-toggle-btn">🤳 Selfie</button>
+    </div>
+    <div class="hud-bottom">
+      <div id="banner">C'Mon Bohs! 🔴⚫</div>
+      <!-- Screenshot / share button -->
+      <button id="screenshot-btn" title="Take a photo">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 3L7.17 5H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0
+            2-2V7a2 2 0 0 0-2-2h-3.17L15 3H9zm3 15a5 5 0 1 1 0-10 5 5 0 0 1 0
+            10zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <!-- iOS camera feed -->
@@ -229,42 +293,160 @@
   <!-- iOS welcome banner -->
   <div id="welcomeBanner">C'Mon Bohs! 🔴⚫</div>
 
-  <!-- Hidden iOS start trigger (used by main-ios.js internally) -->
+  <!-- Hidden iOS start trigger -->
   <button id="startBtn" style="display:none">start</button>
 
   <script type="importmap">
-    {
-      "imports": {
-        "three": "./vendor/three/build/three.module.js"
-      }
-    }
+    { "imports": { "three": "./vendor/three/build/three.module.js" } }
   </script>
 
   <script type="module">
+    // ── Platform detection ──────────────────────────────────────────
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     const params = new URLSearchParams(window.location.search);
     const cacheVersion = params.get("v") || String(Date.now());
 
+    // ── Analytics ───────────────────────────────────────────────────
+    // Lightweight event logger — replace body with GA4 / Plausible when ready
+    function logEvent(name, data = {}) {
+      const payload = { event: name, platform: isIOS ? "ios" : "android",
+                        ts: new Date().toISOString(), ...data };
+      console.info("[TW Analytics]", payload);
+      // GA4 hook (no-op until gtag is loaded):
+      if (typeof gtag === "function") {
+        gtag("event", name, { ...data, platform: payload.platform });
+      }
+    }
+
+    // ── Return visit detection ──────────────────────────────────────
+    const MATCH_KEY = "tw_bfc_march21";
+    const isReturn = !!localStorage.getItem(MATCH_KEY);
+    if (isReturn) logEvent("return_visit");
+    localStorage.setItem(MATCH_KEY, "1");
+
+    // ── Shutter flash ───────────────────────────────────────────────
+    function triggerShutterFlash() {
+      const flash = document.getElementById("shutter-flash");
+      flash.classList.add("flash");
+      setTimeout(() => {
+        flash.style.transition = "opacity 300ms ease";
+        flash.style.opacity = "0";
+        setTimeout(() => {
+          flash.classList.remove("flash");
+          flash.style.transition = "";
+          flash.style.opacity = "";
+        }, 320);
+      }, 80);
+    }
+
+    // ── Screenshot capture & share ──────────────────────────────────
+    async function takeScreenshot() {
+      triggerShutterFlash();
+      logEvent("screenshot_taken");
+
+      // Small delay to let the current frame settle
+      await new Promise(r => setTimeout(r, 60));
+
+      try {
+        // Find the WebGL canvas (Three.js renderer)
+        const canvas = document.querySelector("canvas");
+        if (!canvas) throw new Error("No canvas found");
+
+        if (isIOS) {
+          // iOS: composite camera feed + Three.js canvas into an offscreen canvas
+          const offscreen = document.createElement("canvas");
+          offscreen.width = canvas.width;
+          offscreen.height = canvas.height;
+          const ctx = offscreen.getContext("2d");
+
+          const video = document.getElementById("cameraFeed");
+          if (video && video.readyState >= 2) {
+            ctx.drawImage(video, 0, 0, offscreen.width, offscreen.height);
+          }
+          ctx.drawImage(canvas, 0, 0);
+
+          const blob = await new Promise(res => offscreen.toBlob(res, "image/png"));
+          await shareOrDownload(blob);
+        } else {
+          // Android WebXR: canvas already has the composited frame
+          const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+          await shareOrDownload(blob);
+        }
+      } catch (err) {
+        console.warn("Screenshot failed:", err);
+      }
+    }
+
+    async function shareOrDownload(blob) {
+      const file = new File([blob], "cmon-bohs.png", { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: "C'Mon Bohs! ⚽",
+          text: "Bohemian FC AR experience — Dalymount Park, March 21st"
+        });
+      } else {
+        // Fallback: trigger download
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "cmon-bohs.png";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    document.getElementById("screenshot-btn").addEventListener("click", takeScreenshot);
+
+    // ── Selfie toggle (iOS only) ────────────────────────────────────
+    let selfieModeActive = false;
+    const selfieBtn = document.getElementById("selfie-toggle-btn");
+
+    async function toggleSelfieMode() {
+      selfieModeActive = !selfieModeActive;
+      selfieBtn.textContent = selfieModeActive ? "🌍 Back" : "🤳 Selfie";
+      logEvent("selfie_mode_entered", { active: selfieModeActive });
+
+      // Tell main-ios.js to switch camera
+      if (typeof window._switchCamera === "function") {
+        await window._switchCamera(selfieModeActive ? "user" : "environment");
+      }
+    }
+    selfieBtn.addEventListener("click", toggleSelfieMode);
+
+    // ── Splash dismiss ──────────────────────────────────────────────
     function dismissSplash() {
       const splash = document.getElementById("splash");
       splash.classList.add("fade-out");
       setTimeout(() => { splash.style.display = "none"; }, 650);
     }
 
+    // ── Session end handler ─────────────────────────────────────────
+    function onSessionEnd() {
+      logEvent("ar_session_end");
+      document.getElementById("hud").classList.remove("active");
+      const splash = document.getElementById("splash");
+      splash.style.display = "flex";
+      splash.style.opacity = "1";
+      splash.classList.remove("fade-out");
+    }
+
+    // ── Platform routing ────────────────────────────────────────────
     if (isIOS) {
-      // iOS: load script first, then splash button triggers startExperience directly
       document.getElementById("cameraFeed").style.display = "block";
       document.getElementById("welcomeBanner").style.display = "block";
+      selfieBtn.style.display = "block"; // show selfie toggle on iOS
 
       const mainUrl = new URL("./main-ios.js", import.meta.url);
       mainUrl.searchParams.set("v", cacheVersion);
       import(mainUrl.toString()).then(() => {
-        // Wire splash button to the hidden startBtn (which main-ios.js listens to)
         document.getElementById("splashBtn").addEventListener("click", () => {
           dismissSplash();
+          document.getElementById("hud").classList.add("active");
           document.getElementById("startBtn").click();
+          logEvent("ar_session_start");
         });
       }).catch((err) => {
         console.error("Failed to load iOS AR script:", err);
@@ -272,27 +454,29 @@
       });
 
     } else {
-      // Android: load script, then splash button clicks the ARButton
       const mainUrl = new URL("./main-android.js", import.meta.url);
       mainUrl.searchParams.set("v", cacheVersion);
       import(mainUrl.toString()).then(() => {
         document.getElementById("splashBtn").addEventListener("click", () => {
           dismissSplash();
-          // Show HUD and click the ARButton to start the WebXR session
           document.getElementById("hud").classList.add("active");
           const arBtn = document.getElementById("ARButton");
           if (arBtn) arBtn.click();
+          logEvent("ar_session_start");
 
-          // Wire stop button to end the session
+          // Listen for session end via ARButton text change
+          const observer = new MutationObserver(() => {
+            if (arBtn && arBtn.textContent.trim() === "START AR") {
+              onSessionEnd();
+            }
+          });
+          if (arBtn) observer.observe(arBtn, { childList: true, characterData: true, subtree: true });
+
+          // Stop button
           document.getElementById("stop-ar-btn").addEventListener("click", () => {
             const arBtn = document.getElementById("ARButton");
-            if (arBtn) arBtn.click(); // ARButton toggles: click again to STOP AR
-            document.getElementById("hud").classList.remove("active");
-            // Show splash again so user can restart
-            const splash = document.getElementById("splash");
-            splash.style.display = "flex";
-            splash.style.opacity = "1";
-            splash.classList.remove("fade-out");
+            if (arBtn) arBtn.click();
+            onSessionEnd();
           });
         });
       }).catch((err) => {
@@ -300,6 +484,11 @@
         document.getElementById("splashBtn").textContent = "Failed to load — please refresh";
       });
     }
+
+    // ── Visibility change → session end ────────────────────────────
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) logEvent("ar_session_end", { reason: "visibility_hidden" });
+    });
   </script>
 </body>
 </html>

@@ -58,11 +58,28 @@ function init() {
   );
   camera.position.set(0, 1.6, 3);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setClearColor(0x000000, 0);
   document.body.appendChild(renderer.domElement);
+
+  // Expose camera switch for selfie toggle
+  window._switchCamera = async function(facingMode) {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
+    }
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facingMode }, audio: false
+      });
+      cameraFeed.srcObject = cameraStream;
+      await cameraFeed.play();
+    } catch (err) {
+      console.warn("Camera switch failed:", err);
+    }
+  };
 
   const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
   scene.add(light);
