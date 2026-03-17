@@ -549,16 +549,7 @@ function createParachuteTexture() {
   ctx.fillStyle = "rgba(240, 237, 228, 0.93)";
   ctx.fill();
 
-  // Panel stripes — same off-white tone as canopy, slightly darker
-  ctx.strokeStyle = "rgba(195, 190, 178, 0.85)";
-  ctx.lineWidth = 1.5;
-  for (let i = 1; i <= 4; i++) {
-    const x = 16 + (i * (width - 32)) / 5;
-    ctx.beginPath();
-    ctx.moveTo(x, 88);
-    ctx.quadraticCurveTo(width / 2, 20, x, 88);
-    ctx.stroke();
-  }
+  // No panel stripes — clean canopy
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
